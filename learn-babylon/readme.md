@@ -1,0 +1,1 @@
+follow instructions in https://doc.babylonjs.com/guidedLearning/usingVite
