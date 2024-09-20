@@ -25,14 +25,44 @@ class App {
         camera.attachControl(canvas, true);
         const light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(1, 1, 0));
 
-        const box = MeshBuilder.CreateBox("box", {});
+        // const box = MeshBuilder.CreateBox("box", {});
+        // box.position.y = 0.5;
+        // const boxMat = new BABYLON.StandardMaterial("boxMat");
+        // boxMat.diffuseTexture = new BABYLON.Texture("https://www.babylonjs-playground.com/textures/floor.png");
+        // box.material = boxMat;
+
+        const boxMat = new BABYLON.StandardMaterial("boxMat");
+        boxMat.diffuseTexture = new BABYLON.Texture("https://assets.babylonjs.com/environments/cubehouse.png")
+
+        //options parameter to set different images on each side
+        const faceUV = [];
+        faceUV[0] = new BABYLON.Vector4(0.5, 0.0, 0.75, 1.0); //rear face, 这些坐标是相对于图片左下角而言的
+        faceUV[1] = new BABYLON.Vector4(0.0, 0.0, 0.25, 1.0); //front face
+        faceUV[2] = new BABYLON.Vector4(0.25, 0, 0.5, 1.0); //right side
+        faceUV[3] = new BABYLON.Vector4(0.75, 0, 1.0, 1.0); //left side
+        const box = MeshBuilder.CreateBox("box", { faceUV: faceUV, wrap: true });
         box.position.y = 0.5;
-        const roof = MeshBuilder.CreateCylinder("roof", { diameter: 1.3, height: 1.2, tessellation: 3 });
+        box.material = boxMat;
+        // top 4 and bottom 5 not seen so not set
+        const roof = MeshBuilder.CreateCylinder("roof", {
+            diameter: 1.3, height: 1.2,
+            tessellation: 3 // 截面为3角的管体，好像只能是整数 
+        });
         roof.scaling.x = 0.75;
         roof.rotation.z = Math.PI / 2;
         roof.position.y = 1.22;
+        const roofMat = new BABYLON.StandardMaterial("roofMat", scene);
+        roofMat.diffuseTexture = new BABYLON.Texture("https://assets.babylonjs.com/environments/roof.jpg", scene);
+        roof.material = roofMat;
+
+        // disposeSource，合并后是否在scene中保留原始mesh，默认丢掉
+        // multiMultiMaterial，是否允许多材质，默认false，true的话会保留原来mesh的材质
+        const house = BABYLON.Mesh.MergeMeshes([box, roof], true, false, null, false, true);
 
         const ground = MeshBuilder.CreateGround("ground", { width: 10, height: 10 }, scene);
+        const groundMat = new BABYLON.StandardMaterial("grass", scene);
+        groundMat.diffuseColor = new BABYLON.Color3(0, 1, 0);
+        ground.material = groundMat;
 
 
         // hide/show the Inspector
