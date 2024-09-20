@@ -33,10 +33,12 @@ class App {
         const boxChild = BABYLON.MeshBuilder.CreateBox("Box", { size: 0.5, faceColors: faceColors });
         boxChild.setParent(boxParent);
 
+        // child的位置是相对于parent的坐标系移动的
         boxChild.position.x = -1;
         boxChild.position.y = 2;
         boxChild.position.z = 0;
-
+        // child的旋转则比较迷惑。貌似是相对于自身的，但是当绕x旋转到一定角度后（非0，90°这种），y，z的旋转就不是绕着自己了，
+        // 变得比较迷惑。类似的，当绕z轴旋转到一定角度后，x，y的旋转效果也不是绕着自己轴了。目前搞不清楚
         boxChild.rotation.x = Math.PI * 0.5;
         boxChild.rotation.y = Math.PI * 0.25;
         boxChild.rotation.z = Math.PI / 4;
@@ -56,6 +58,17 @@ class App {
         boxChildAxes.parent = boxChild;
         this.showAxis(6, scene);
 
+        // hide/show the Inspector
+        window.addEventListener("keydown", (ev) => {
+            // Shift+Alt+I
+            if (ev.shiftKey && ev.altKey && ev.keyCode === 73) {
+                if (scene.debugLayer.isVisible()) {
+                    scene.debugLayer.hide();
+                } else {
+                    scene.debugLayer.show();
+                }
+            }
+        });
         // run the main render loop
         engine.runRenderLoop(() => {
             scene.render();
