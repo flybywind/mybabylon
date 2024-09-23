@@ -16,10 +16,10 @@ class App {
         var engine = new Engine(canvas, true);
         var scene = new Scene(engine);
         const camera = new BABYLON.ArcRotateCamera("camera",
-            -Math.PI / 1.5, //即沿着y轴旋转，0是正对x轴
-            Math.PI / 3,    //沿着z轴旋转, 0是正对y轴
+            -Math.PI / 1.5, //comment: 即沿着y轴旋转，0是正对x轴
+            Math.PI / 3,    //comment: 沿着z轴旋转, 0是正对y轴
             10,
-            new BABYLON.Vector3(0, 0, 0) // target position,即用户看向的位置
+            new BABYLON.Vector3(0, 0, 0) //comment:  target position,即用户看向的位置
         );
 
         camera.attachControl(canvas, true);
@@ -46,7 +46,7 @@ class App {
         // top 4 and bottom 5 not seen so not set
         const roof = MeshBuilder.CreateCylinder("roof", {
             diameter: 1.3, height: 1.2,
-            tessellation: 3 // 截面为3角的管体，好像只能是整数 
+            tessellation: 3 //comment:  截面为3角的管体，好像只能是整数 
         });
         roof.scaling.x = 0.75;
         roof.rotation.z = Math.PI / 2;
@@ -55,8 +55,8 @@ class App {
         roofMat.diffuseTexture = new BABYLON.Texture("https://assets.babylonjs.com/environments/roof.jpg", scene);
         roof.material = roofMat;
 
-        // disposeSource，合并后是否在scene中保留原始mesh，默认丢掉
-        // multiMultiMaterial，是否允许多材质，默认false，true的话会保留原来mesh的材质
+        // comment: disposeSource，合并后是否在scene中保留原始mesh，默认丢掉
+        //comment:  multiMultiMaterial，是否允许多材质，默认false，true的话会保留原来mesh的材质
         const house = BABYLON.Mesh.MergeMeshes([box, roof], true, false, null, false, true);
 
         const ground = MeshBuilder.CreateGround("ground", { width: 10, height: 10 }, scene);
