@@ -63,6 +63,7 @@ class App {
 
         //car face UVs
         const faceUV = [];
+        // comment: 注意，这个车现在是侧面朝上。对于extrude形成的cylinder，2是底面，0是顶面。和一般的cylinder相反。1都是侧面
         faceUV[0] = new BABYLON.Vector4(0, 0.5, 0.38, 1);
         faceUV[1] = new BABYLON.Vector4(0, 0, 1, 0.5);
         faceUV[2] = new BABYLON.Vector4(0.38, 1, 0, 0.5);
@@ -75,6 +76,32 @@ class App {
 
         //car material
         car.material = carMat;
+        // car animation
+        const animCar = new BABYLON.Animation("carAnimation", "position.x", 30,
+            BABYLON.Animation.ANIMATIONTYPE_FLOAT, BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE);
+
+        const carKeys = [];
+        carKeys.push({
+            frame: 0,
+            value: -4
+        });
+
+        carKeys.push({
+            frame: 150,
+            value: 4
+        });
+
+        carKeys.push({
+            frame: 210,
+            value: 4
+        });
+
+        animCar.setKeys(carKeys);
+
+        car.animations = [];
+        car.animations.push(animCar);
+
+        scene.beginAnimation(car, 0, 210, true);
 
         //wheel face UVs
         const wheelUV = [];
@@ -96,6 +123,30 @@ class App {
         wheelRB.position.z = -0.1;
         wheelRB.position.x = -0.2;
         wheelRB.position.y = 0.035;
+        //Comment: wheel animation, fps = 30
+        const animWheel = new BABYLON.Animation("wheelAnimation", "rotation.y", 30,
+            BABYLON.Animation.ANIMATIONTYPE_FLOAT,
+            BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE);
+        const wheelKeys = [];
+
+        //At the animation key 0, the value of rotation.y is 0
+        wheelKeys.push({
+            frame: 0,
+            value: 0
+        });
+
+        //Comment: At the animation key 30, (after 1 sec since animation fps = 30) the value of rotation.y is 2PI for a complete rotation
+        wheelKeys.push({
+            frame: 30,
+            value: 2 * Math.PI
+        });
+
+        //set the keys
+        animWheel.setKeys(wheelKeys);
+
+        //Link this animation to the right back wheel
+        wheelRB.animations = [];
+        wheelRB.animations.push(animWheel);
 
         const wheelRF = wheelRB.clone("wheelRF");
         wheelRF.position.x = 0.1;
@@ -105,6 +156,24 @@ class App {
 
         const wheelLF = wheelRF.clone("wheelLF");
         wheelLF.position.y = -0.2 - 0.035;
+
+        // BABYLON.SceneLoader.ImportMeshAsync("", "url to model car", "car.babylon").then(() => {
+        //     const wheelRB = scene.getMeshByName("wheelRB");
+        //     const wheelRF = scene.getMeshByName("wheelRF");
+        //     const wheelLB = scene.getMeshByName("wheelLB");
+        //     const wheelLF = scene.getMeshByName("wheelLF");
+
+        //     scene.beginAnimation(wheelRB, 0, 30, true);
+        //     scene.beginAnimation(wheelRF, 0, 30, true);
+        //     scene.beginAnimation(wheelLB, 0, 30, true);
+        //     scene.beginAnimation(wheelLF, 0, 30, true);
+        // });
+        //Begin animation - object to animate, first frame, last frame and loop if true
+        scene.beginAnimation(wheelRB, 0, 30, true);
+        scene.beginAnimation(wheelRF, 0, 30, true);
+        scene.beginAnimation(wheelLB, 0, 30, true);
+        scene.beginAnimation(wheelLF, 0, 30, true);
+
         return car;
     }
 }
