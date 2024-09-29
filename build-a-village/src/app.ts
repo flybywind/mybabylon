@@ -1,6 +1,6 @@
 import "@babylonjs/core/Debug/debugLayer";
 import "@babylonjs/inspector";
-import { Engine, Scene, ArcRotateCamera, HemisphericLight, Mesh, MeshBuilder, Vector3 } from "@babylonjs/core";
+import { Engine, Scene, Mesh } from "@babylonjs/core";
 import * as BABYLON from "@babylonjs/core";
 
 class App {
@@ -16,76 +16,43 @@ class App {
         var engine = new Engine(canvas, true);
         var scene = new Scene(engine);
         const camera = new BABYLON.ArcRotateCamera("camera",
-            -Math.PI / 1.5, //comment: 即沿着y轴旋转，0是正对x轴
-            Math.PI / 3,    //comment: 沿着z轴旋转, 0是正对y轴
-            10,
+            -Math.PI / 2, //comment: 即沿着y轴旋转，0是正对x轴
+            Math.PI / 2.5,    //comment: 沿着z轴旋转, 0是正对y轴
+            15,
             new BABYLON.Vector3(0, 0, 0) //comment:  target position,即用户看向的位置
         );
 
         camera.attachControl(canvas, true);
+
+        camera.attachControl(canvas, true);
         const light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(1, 1, 0));
+        light.intensity = 2.7;
+        BABYLON.SceneLoader.ImportMeshAsync("", "/assets/meshes/", "village.glb");
 
-        // const box = MeshBuilder.CreateBox("box", {});
-        // box.position.y = 0.5;
-        // const boxMat = new BABYLON.StandardMaterial("boxMat");
-        // boxMat.diffuseTexture = new BABYLON.Texture("https://www.babylonjs-playground.com/textures/floor.png");
-        // box.material = boxMat;
-
-        const boxMat = new BABYLON.StandardMaterial("boxMat");
-        boxMat.diffuseTexture = new BABYLON.Texture("https://assets.babylonjs.com/environments/cubehouse.png")
-
-        //options parameter to set different images on each side
-        const faceUV = [];
-        faceUV[0] = new BABYLON.Vector4(0.5, 0.0, 0.75, 1.0); //rear face, 这些坐标是相对于图片左下角而言的
-        faceUV[1] = new BABYLON.Vector4(0.0, 0.0, 0.25, 1.0); //front face
-        faceUV[2] = new BABYLON.Vector4(0.25, 0, 0.5, 1.0); //right side
-        faceUV[3] = new BABYLON.Vector4(0.75, 0, 1.0, 1.0); //left side
-        const box = MeshBuilder.CreateBox("box", { faceUV: faceUV, wrap: true });
-        box.position.y = 0.5;
-        box.material = boxMat;
-        // top 4 and bottom 5 not seen so not set
-        const roof = MeshBuilder.CreateCylinder("roof", {
-            diameter: 1.3, height: 1.2,
-            tessellation: 3 //comment:  截面为3角的管体，好像只能是整数 
-        });
-        roof.scaling.x = 0.75;
-        roof.rotation.z = Math.PI / 2;
-        roof.position.y = 1.22;
-        const roofMat = new BABYLON.StandardMaterial("roofMat", scene);
-        roofMat.diffuseTexture = new BABYLON.Texture("https://assets.babylonjs.com/environments/roof.jpg", scene);
-        roof.material = roofMat;
-
-        // comment: disposeSource，合并后是否在scene中保留原始mesh，默认丢掉
-        //comment:  multiMultiMaterial，是否允许多材质，默认false，true的话会保留原来mesh的材质
-        const house = BABYLON.Mesh.MergeMeshes([box, roof], true, false, null, false, true);
-
-        const ground = MeshBuilder.CreateGround("ground", { width: 10, height: 10 }, scene);
-        const groundMat = new BABYLON.StandardMaterial("grass", scene);
-        groundMat.diffuseColor = new BABYLON.Color3(0, 1, 0);
-        ground.material = groundMat;
-
+        //Comment: 通过这个函数创建了村庄后，可以导出为glb，然后在import的时候，可以直接导入。如上所示
+        // this.buildVillage();
 
         // hide/show the Inspector
         window.addEventListener("keydown", (ev) => {
-            // Shift+Ctrl+Alt+I
+            // Shift+Alt+I
             if (ev.shiftKey && ev.altKey && ev.keyCode === 73) {
                 if (scene.debugLayer.isVisible()) {
                     scene.debugLayer.hide();
-                    if (this.globalAxes) {
-                        this.globalAxes.dispose();
-                        this.globalAxes = null;
-                    }
-                    if (this.localAxes.length > 0) {
-                        this.localAxes.forEach(axes => {
-                            axes.dispose();
-                            axes = null;
-                        });
-                        this.localAxes = [];
-                    }
+                    // if (this.globalAxes) {
+                    //     this.globalAxes.dispose();
+                    //     this.globalAxes = null;
+                    // }
+                    // if (this.localAxes.length > 0) {
+                    //     this.localAxes.forEach(axes => {
+                    //         axes.dispose();
+                    //         axes = null;
+                    //     });
+                    //     this.localAxes = [];
+                    // }
                 } else {
                     scene.debugLayer.show();
-                    this.globalAxes = new BABYLON.AxesViewer(scene, 1);
-                    this.axesSwitch(scene, roof);
+                    // this.globalAxes = new BABYLON.AxesViewer(scene, 1);
+                    // this.axesSwitch(scene, this.roof);
                 }
             }
         });
@@ -108,6 +75,118 @@ class App {
 
         this.localAxes.push(axesLocalViewer);
         // axesLocalViewer.dispose();
+    }
+
+    /******Build Functions***********/
+    buildVillage = () => {
+        const ground = this.buildGround();
+
+        const detached_house = this.buildHouse(1);
+        detached_house.rotation.y = -Math.PI / 16;
+        detached_house.position.x = -6.8;
+        detached_house.position.z = 2.5;
+
+        const semi_house = this.buildHouse(2);
+        semi_house.rotation.y = -Math.PI / 16;
+        semi_house.position.x = -4.5;
+        semi_house.position.z = 3;
+
+        const places = []; //each entry is an array [house type, rotation, x, z]
+        places.push([1, -Math.PI / 16, -6.8, 2.5]);
+        places.push([2, -Math.PI / 16, -4.5, 3]);
+        places.push([2, -Math.PI / 16, -1.5, 4]);
+        places.push([2, -Math.PI / 3, 1.5, 6]);
+        places.push([2, 15 * Math.PI / 16, -6.4, -1.5]);
+        places.push([1, 15 * Math.PI / 16, -4.1, -1]);
+        places.push([2, 15 * Math.PI / 16, -2.1, -0.5]);
+        places.push([1, 5 * Math.PI / 4, 0, -1]);
+        places.push([1, Math.PI + Math.PI / 2.5, 0.5, -3]);
+        places.push([2, Math.PI + Math.PI / 2.1, 0.75, -5]);
+        places.push([1, Math.PI + Math.PI / 2.25, 0.75, -7]);
+        places.push([2, Math.PI / 1.9, 4.75, -1]);
+        places.push([1, Math.PI / 1.95, 4.5, -3]);
+        places.push([2, Math.PI / 1.9, 4.75, -5]);
+        places.push([1, Math.PI / 1.9, 4.75, -7]);
+        places.push([2, -Math.PI / 3, 5.25, 2]);
+        places.push([1, -Math.PI / 3, 6, 4]);
+
+        //Create instances from the first two that were built
+        const houses = [];
+        for (let i = 0; i < places.length; i++) {
+            if (places[i][0] === 1) {
+                houses[i] = detached_house.createInstance("house" + i);
+            }
+            else {
+                houses[i] = semi_house.createInstance("house" + i);
+            }
+            houses[i].rotation.y = places[i][1];
+            houses[i].position.x = places[i][2];
+            houses[i].position.z = places[i][3];
+        }
+    }
+    buildGround = () => {
+        //color
+        const groundMat = new BABYLON.StandardMaterial("groundMat");
+        groundMat.diffuseColor = new BABYLON.Color3(0, 1, 0);
+
+        const ground = BABYLON.MeshBuilder.CreateGround("ground", { width: 15, height: 16 });
+        ground.material = groundMat;
+    }
+
+    buildHouse = (width) => {
+        const box = this.buildBox(width);
+        const roof = this.buildRoof(width);
+
+        return BABYLON.Mesh.MergeMeshes([box, roof], true, false, null, false, true);
+    }
+
+    buildBox = (width) => {
+        //texture
+        const boxMat = new BABYLON.StandardMaterial("boxMat");
+        if (width == 2) {
+            boxMat.diffuseTexture = new BABYLON.Texture("https://assets.babylonjs.com/environments/semihouse.png")
+        }
+        else {
+            boxMat.diffuseTexture = new BABYLON.Texture("https://assets.babylonjs.com/environments/cubehouse.png");
+        }
+
+        //options parameter to set different images on each side
+        const faceUV = [];
+        if (width == 2) {
+            faceUV[0] = new BABYLON.Vector4(0.6, 0.0, 1.0, 1.0); //rear face
+            faceUV[1] = new BABYLON.Vector4(0.0, 0.0, 0.4, 1.0); //front face
+            faceUV[2] = new BABYLON.Vector4(0.4, 0, 0.6, 1.0); //right side
+            faceUV[3] = new BABYLON.Vector4(0.4, 0, 0.6, 1.0); //left side
+        }
+        else {
+            faceUV[0] = new BABYLON.Vector4(0.5, 0.0, 0.75, 1.0); //rear face
+            faceUV[1] = new BABYLON.Vector4(0.0, 0.0, 0.25, 1.0); //front face
+            faceUV[2] = new BABYLON.Vector4(0.25, 0, 0.5, 1.0); //right side
+            faceUV[3] = new BABYLON.Vector4(0.75, 0, 1.0, 1.0); //left side
+        }
+        // top 4 and bottom 5 not seen so not set
+
+        /**** World Objects *****/
+        const box = BABYLON.MeshBuilder.CreateBox("box", { width: width, faceUV: faceUV, wrap: true });
+        box.material = boxMat;
+        box.position.y = 0.5;
+
+        return box;
+    }
+
+    buildRoof = (width) => {
+        //texture
+        const roofMat = new BABYLON.StandardMaterial("roofMat");
+        roofMat.diffuseTexture = new BABYLON.Texture("https://assets.babylonjs.com/environments/roof.jpg");
+
+        const roof = BABYLON.MeshBuilder.CreateCylinder("roof", { diameter: 1.3, height: 1.2, tessellation: 3 });
+        roof.material = roofMat;
+        roof.scaling.x = 0.75;
+        roof.scaling.y = width;
+        roof.rotation.z = Math.PI / 2;
+        roof.position.y = 1.22;
+
+        return roof;
     }
 }
 new App();
