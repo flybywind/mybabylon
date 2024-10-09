@@ -30,8 +30,8 @@ class App {
 
         //Comment: 通过这个函数创建了村庄后，可以导出为glb，然后在import的时候，可以直接导入。如上所示
         // 会显得有点黑，已经在社区提问了 https://forum.babylonjs.com/t/why-do-the-meshes-looks-darker-than-in-the-original-scene-after-imported/53840
-        // this.buildVillage();
-        BABYLON.SceneLoader.ImportMeshAsync("", "/assets/meshes/", "village.glb");
+        this.buildVillage();
+        BABYLON.SceneLoader.ImportMeshAsync("", "/assets/meshes/village/", "scene.babylon");
 
         // put Dude in scene
         // this.buildDude(scene);
