@@ -1,6 +1,5 @@
 import "@babylonjs/core/Debug/debugLayer";
 import "@babylonjs/inspector";
-import { Engine, Scene, Mesh } from "@babylonjs/core";
 import * as BABYLON from "@babylonjs/core";
 
 class App {
@@ -13,8 +12,8 @@ class App {
         document.body.appendChild(canvas);
 
         // initialize babylon scene and engine
-        var engine = new Engine(canvas, true);
-        var scene = new Scene(engine);
+        var engine = new BABYLON.Engine(canvas, true);
+        var scene = new BABYLON.Scene(engine);
         const camera = new BABYLON.ArcRotateCamera("camera",
             -Math.PI / 2, //comment: 即沿着y轴旋转，0是正对x轴
             Math.PI / 2.5,    //comment: 沿着z轴旋转, 0是正对y轴
@@ -28,34 +27,19 @@ class App {
         const light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(1, 1, 0));
         light.intensity = 1.0;
 
-        //Comment: 通过这个函数创建了村庄后，可以导出为glb，然后在import的时候，可以直接导入。如上所示
-        // 会显得有点黑，已经在社区提问了 https://forum.babylonjs.com/t/why-do-the-meshes-looks-darker-than-in-the-original-scene-after-imported/53840
-        this.buildVillage();
-        BABYLON.SceneLoader.ImportMeshAsync("", "/assets/meshes/village/", "scene.babylon");
+        // comment this line to build village and export the scene
+        // this.buildVillage();
+        // comment the above line and uncomment the following line to import the scene
+        BABYLON.SceneLoader.ImportMesh("", "/assets/meshes/village/", "scene.babylon");
 
-        // put Dude in scene
-        // this.buildDude(scene);
         // hide/show the Inspector
         window.addEventListener("keydown", (ev) => {
             // Shift+Alt+I
             if (ev.shiftKey && ev.altKey && ev.keyCode === 73) {
                 if (scene.debugLayer.isVisible()) {
                     scene.debugLayer.hide();
-                    // if (this.globalAxes) {
-                    //     this.globalAxes.dispose();
-                    //     this.globalAxes = null;
-                    // }
-                    // if (this.localAxes.length > 0) {
-                    //     this.localAxes.forEach(axes => {
-                    //         axes.dispose();
-                    //         axes = null;
-                    //     });
-                    //     this.localAxes = [];
-                    // }
                 } else {
                     scene.debugLayer.show();
-                    // this.globalAxes = new BABYLON.AxesViewer(scene, 1);
-                    // this.axesSwitch(scene, this.roof);
                 }
             }
         });
@@ -63,73 +47,6 @@ class App {
         // run the main render loop
         engine.runRenderLoop(() => {
             scene.render();
-        });
-    }
-    // showAxesOnClick: (mesh: Mesh)=>void = (mesh: Mesh) => {
-    //     mesh.addBehavior
-    // }
-    globalAxes: BABYLON.AxesViewer = null
-    localAxes: BABYLON.AxesViewer[] = []
-    axesSwitch = (scene: Scene, mesh: Mesh) => {
-        var axesLocalViewer = new BABYLON.AxesViewer(scene, 1);
-        axesLocalViewer.xAxis.parent = mesh;
-        axesLocalViewer.yAxis.parent = mesh;
-        axesLocalViewer.zAxis.parent = mesh;
-
-        this.localAxes.push(axesLocalViewer);
-        // axesLocalViewer.dispose();
-    }
-
-    /******Build Functions***********/
-    buildDude = (scene: Scene) => {
-        const walk = function (turn, dist) {
-            this.turn = turn;
-            this.dist = dist;
-        }
-
-        const track = [];
-        track.push(new walk(86, 7));
-        track.push(new walk(-85, 14.8));
-        track.push(new walk(-93, 16.5));
-        track.push(new walk(48, 25.5));
-        track.push(new walk(-112, 30.5));
-        track.push(new walk(-72, 33.2));
-        track.push(new walk(42, 37.5));
-        track.push(new walk(-98, 45.2));
-        track.push(new walk(0, 47))
-
-        // Dude
-        BABYLON.SceneLoader.ImportMeshAsync("him", "/assets/meshes/Dude/", "Dude.babylon", scene).then((result) => {
-            var dude = result.meshes[0];
-            dude.scaling = new BABYLON.Vector3(0.008, 0.008, 0.008);
-
-            dude.position = new BABYLON.Vector3(-6, 0, 0);
-            dude.rotate(BABYLON.Axis.Y, BABYLON.Tools.ToRadians(-95), BABYLON.Space.LOCAL);
-            const startRotation = dude.rotationQuaternion.clone();
-
-            scene.beginAnimation(result.skeletons[0], 0, 100, true, 1.0);
-
-            let distance = 0;
-            let step = 0.015;
-            let p = 0;
-
-            scene.onBeforeRenderObservable.add(() => {
-                dude.movePOV(0, 0, step);
-                distance += step;
-
-                if (distance > track[p].dist) {
-
-                    dude.rotate(BABYLON.Axis.Y, BABYLON.Tools.ToRadians(track[p].turn), BABYLON.Space.LOCAL);
-                    p += 1;
-                    p %= track.length;
-                    if (p === 0) {
-                        distance = 0;
-                        dude.position = new BABYLON.Vector3(-6, 0, 0);
-                        dude.rotationQuaternion = startRotation.clone();
-                    }
-                }
-
-            })
         });
     }
     buildVillage = () => {
@@ -195,7 +112,7 @@ class App {
 
     buildBox = (width) => {
         //texture
-        const boxMat = new BABYLON.StandardMaterial("boxMat");
+        const boxMat = new BABYLON.StandardMaterial("boxMat-" + width);
         if (width == 2) {
             boxMat.diffuseTexture = new BABYLON.Texture("https://assets.babylonjs.com/environments/semihouse.png")
         }
